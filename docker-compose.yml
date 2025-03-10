@@ -1,0 +1,209 @@
+
+services:
+  # ===========================
+  # EUREKA SERVER
+  # ===========================
+  tripsync-eureka:
+    container_name: tripsync-eureka
+    build:
+      context: ./tripsync_eureka
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8761"
+    networks:
+      - tripsync-network
+    environment:
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+      - EUREKA_CLIENT_FETCH_REGISTRY=false
+    # Simpler healthcheck that just checks if the port is open
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8761"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    restart: always
+
+  # ===========================
+  # API GATEWAY
+  # ===========================
+  api-gateway:
+    container_name: tripsync_gateway
+    build:
+      context: ./tripsync_gateway
+      dockerfile: Dockerfile
+    ports:
+      - "9090:9090"
+    depends_on:
+      - tripsync-eureka
+    networks:
+      - tripsync-network
+    environment:
+      - SPRING_APPLICATION_NAME=api-gateway
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://tripsync-eureka:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    restart: always
+
+  # ===========================
+  # ITINERARY SERVICE
+  # ===========================
+  itinerary-service:
+    container_name: itinerary-microservice
+    build:
+      context: ./itinerary1
+    ports:
+      - "8080:8080"
+    depends_on:
+      - itinerary-db
+      - tripsync-eureka
+    environment:
+      - SPRING_APPLICATION_NAME=itinerary-microservice
+      - SPRING_DATASOURCE_URL=jdbc:mysql://itinerary-db:3306/itinerary_db
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=halloween
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://tripsync-eureka:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    networks:
+      - tripsync-network
+    restart: always
+
+  itinerary-db:
+    image: mysql:8.0
+    container_name: itinerary-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: halloween
+      MYSQL_DATABASE: itinerary_db
+    ports:
+      - "3307:3306"
+    networks:
+      - tripsync-network
+    volumes:
+      - itinerary-data:/var/lib/mysql
+
+  # ===========================
+  # USER SERVICE
+  # ===========================
+  user-service:
+    container_name: user-microservice
+    build:
+      context: ./user1
+    ports:
+      - "4000:4000"
+    depends_on:
+      - user-db
+      - tripsync-eureka
+    environment:
+      - SPRING_APPLICATION_NAME=user-microservice
+      - SPRING_DATASOURCE_URL=jdbc:mysql://user-db:3306/user_db
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=halloween
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://tripsync-eureka:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    networks:
+      - tripsync-network
+    restart: always
+
+  user-db:
+    image: mysql:8.0
+    container_name: user-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: halloween
+      MYSQL_DATABASE: user_db
+    ports:
+      - "3308:3306"
+    networks:
+      - tripsync-network
+    volumes:
+      - user-data:/var/lib/mysql
+
+  # ===========================
+  # ACTIVITY SERVICE
+  # ===========================
+  activity-service:
+    container_name: activity-microservice
+    build:
+      context: ./activities1
+    ports:
+      - "4040:4040"
+    depends_on:
+      - activities-db
+      - tripsync-eureka
+    environment:
+      - SPRING_APPLICATION_NAME=activity-microservice
+      - SPRING_DATASOURCE_URL=jdbc:mysql://activities-db:3306/activities_db
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=halloween
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://tripsync-eureka:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    networks:
+      - tripsync-network
+    restart: always
+
+  activities-db:
+    image: mysql:8.0
+    container_name: activities-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: halloween
+      MYSQL_DATABASE: activities_db
+    ports:
+      - "3309:3306"
+    networks:
+      - tripsync-network
+    volumes:
+      - activities-data:/var/lib/mysql
+
+  # ===========================
+  # BOOKINGS SERVICE
+  # ===========================
+  bookings-service:
+    container_name: bookings-service
+    build:
+      context: ./bookings
+    ports:
+      - "4050:4050"
+    depends_on:
+      - booking-db
+      - tripsync-eureka
+    environment:
+      - SPRING_APPLICATION_NAME=bookings-service
+      - SPRING_DATASOURCE_URL=jdbc:mysql://booking-db:3306/bookings_db
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=halloween
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://tripsync-eureka:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+    networks:
+      - tripsync-network
+    restart: always
+
+  booking-db:
+    image: mysql:8.0
+    container_name: booking-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: halloween
+      MYSQL_DATABASE: bookings_db
+    ports:
+      - "3310:3306"
+    networks:
+      - tripsync-network
+    volumes:
+      - booking-data:/var/lib/mysql
+
+# ===========================
+# NETWORK DEFINITION
+# ===========================
+networks:
+  tripsync-network:
+    driver: bridge
+
+# ===========================
+# VOLUMES DEFINITION
+# ===========================
+volumes:
+  itinerary-data:
+  user-data:
+  activities-data:
+  booking-data:
