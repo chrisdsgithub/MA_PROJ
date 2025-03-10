@@ -5,12 +5,6 @@
 .idea/
 
 # Ignore all extracted ZIP folders
-activities1/
-bookings/
-itinerary1/
-tripsync_eureka/
-tripsync_gateway/
-user1/
 
 # Ignore ZIP files if not needed
 *.zip
