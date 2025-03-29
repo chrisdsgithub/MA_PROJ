@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookings-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bookings-service
+  template:
+    metadata:
+      labels:
+        app: bookings-service
+    spec:
+      containers:
+        - name: bookings-service
+          image: tripsyncproj/tripsync-bookings-service:latest
+          ports:
+            - containerPort: 4050
+          env:
+            - name: SPRING_APPLICATION_NAME
+              value: "bookings-service"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql:3306/bookings_db"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: username
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: password
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://eureka-server:8761/eureka/"
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              value: "true"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bookings-service
+spec:
+  selector:
+    app: bookings-service
+  ports:
+    - protocol: TCP
+      port: 4050
+      targetPort: 4050
+  type: ClusterIP

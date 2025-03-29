@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: itinerary-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: itinerary-service
+  template:
+    metadata:
+      labels:
+        app: itinerary-service
+    spec:
+      containers:
+        - name: itinerary-service
+          image: tripsyncproj/itinerary-service:latest
+
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_APPLICATION_NAME
+              value: "itinerary-microservice"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql:3306/itinerary_db"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "halloween"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://eureka-server:8761/eureka/"
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              value: "true"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: itinerary-service
+spec:
+  selector:
+    app: itinerary-service
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP

@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: activity-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: activity-service
+  template:
+    metadata:
+      labels:
+        app: activity-service
+    spec:
+      containers:
+        - name: activity-service
+          image: tripsyncproj/activity-service:latest
+
+          ports:
+            - containerPort: 4040
+          env:
+            - name: SPRING_APPLICATION_NAME
+              value: "activity-microservice"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql:3306/activities_db"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "halloween"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://eureka-server:8761/eureka/"
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              value: "true"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: activity-service
+spec:
+  selector:
+    app: activity-service
+  ports:
+    - protocol: TCP
+      port: 4040
+      targetPort: 4040
+  type: ClusterIP
