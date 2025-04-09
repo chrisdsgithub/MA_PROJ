@@ -103,7 +103,6 @@ public class Itinerary {
                 '}';
     }
 
-    // Enum for itinerary status
     public enum Status {
         PLANNED,
         ONGOING,

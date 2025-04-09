@@ -39,8 +39,9 @@ public class ActivityService {
     }
 
     public List<Activity> getActivitiesByLocation(String location) {
-        return activityRepository.findByLocation(location);
+        return activityRepository.findByLocationContainingIgnoreCase(location);
     }
+
 
     public List<Activity> getActivitiesByCategory(String category) {
         return activityRepository.findByCategory(category);

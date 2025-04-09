@@ -30,6 +30,16 @@ public class ItineraryController {
         return itineraryService.getItinerariesByUserId(userId);
     }
 
+    @PutMapping("/update/{itineraryId}")
+    public Itinerary updateItinerary(
+            @PathVariable Long itineraryId,
+            @RequestBody Itinerary updatedItinerary,
+            @RequestParam Long userId
+    ) throws AccessDeniedException {
+        return itineraryService.updateItinerary(itineraryId, updatedItinerary, userId);
+    }
+
+
     @GetMapping("/user/{userId}/{destination}")
     public List<Itinerary> getItinerariesByUserAndDestination(
             @PathVariable Long userId, @PathVariable String destination) {

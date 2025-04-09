@@ -1,5 +1,6 @@
 package com.travel.controller;
 
+import com.travel.dto.AdminUserResponse;
 import com.travel.model.Role;
 import com.travel.model.User;
 import com.travel.service.UserService;
@@ -8,17 +9,31 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/admin")
 public class AdminController {
 
     @Autowired
     private UserService userService;
-
     @GetMapping("/paged")
-    public Page<User> getUsersPaged(@RequestParam int page, @RequestParam int size) {
-        return userService.getUsersPaged(page, size);
+    public ResponseEntity<Page<AdminUserResponse>> getUsersPaged(@RequestParam int page, @RequestParam int size) {
+        Page<User> usersPage = userService.getUsersPaged(page, size);
+        Page<AdminUserResponse> dtoPage = usersPage.map(user ->
+                new AdminUserResponse(
+                        user.getUserId(),
+                        user.getName(),
+                        user.getEmail(),
+                        user.getRole(),
+                        user.isActive(),
+                        user.getPreferences()
+                )
+        );
+        return ResponseEntity.ok(dtoPage);
     }
+
+
 
     @GetMapping("/{id}/preferences")
     public ResponseEntity<String> getUserPreferences(@PathVariable Long id) {
@@ -35,17 +50,11 @@ public class AdminController {
         return userService.getUserById(id).isPresent() ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 
-    @GetMapping("/role/{userId}")
-    public ResponseEntity<?> getUserRole(@PathVariable Long userId) {
-        Role role = userService.getRoleByUserId(userId);
-        return role != null ? ResponseEntity.ok(role) : ResponseEntity.notFound().build();
-    }
-
-    @PutMapping("/promote/{userId}")
-    public ResponseEntity<?> promoteUser(@PathVariable Long userId) {
-        userService.promoteToAdmin(userId);
-        return ResponseEntity.ok("User promoted to ADMIN.");
-    }
+//    @PutMapping("/promote/{userId}")
+//    public ResponseEntity<?> promoteUser(@PathVariable Long userId) {
+//        userService.promoteToAdmin(userId);
+//        return ResponseEntity.ok("User promoted to ADMIN.");
+//    }
 
     @PutMapping("/enable/{userId}")
     public ResponseEntity<?> enableUser(@PathVariable Long userId) {

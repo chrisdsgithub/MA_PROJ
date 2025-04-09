@@ -16,6 +16,11 @@ public class BookingController {
     @Autowired
     private BookingService bookingService;
 
+    @GetMapping
+    public List<Booking> getAllBookings() {
+        return bookingService.getAllBookings();
+    }
+
     @PostMapping
     public Booking createBooking(@RequestBody BookingRequest request) throws Exception {
         return bookingService.createBooking(request);

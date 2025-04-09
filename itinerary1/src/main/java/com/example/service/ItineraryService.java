@@ -32,6 +32,24 @@ public class ItineraryService {
         return itineraryRepository.save(itinerary);
     }
 
+    public Itinerary updateItinerary(Long itineraryId, Itinerary updatedItinerary, Long userId) throws AccessDeniedException {
+        Itinerary existing = itineraryRepository.findById(itineraryId)
+                .orElseThrow(() -> new RuntimeException("Itinerary not found"));
+
+        if (!existing.getUserId().equals(userId)) {
+            throw new AccessDeniedException("User does not have permission to update this itinerary.");
+        }
+
+        existing.setDestination(updatedItinerary.getDestination());
+        existing.setDetails(updatedItinerary.getDetails());
+        existing.setStartDate(updatedItinerary.getStartDate());
+        existing.setEndDate(updatedItinerary.getEndDate());
+        existing.setStatus(updatedItinerary.getStatus());
+
+        return itineraryRepository.save(existing);
+    }
+
+
     public Itinerary getItineraryById(Long id, Long userId) throws AccessDeniedException {
         Itinerary itinerary = itineraryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Itinerary not found"));

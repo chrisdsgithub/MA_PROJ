@@ -27,11 +27,11 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-
     @GetMapping("/profile")
     public ResponseEntity<?> getUserById(@RequestParam Long userId) {
-        Optional<User> user = userService.getUserById(userId);
-        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        User user = userService.getUserById(userId)
+                .orElseThrow(() -> new com.travel.exception.UserNotFoundException("User id doesn't exist"));
+        return ResponseEntity.ok(user);
     }
 
     @PutMapping("/profile")
@@ -51,16 +51,6 @@ public class UserController {
         return new UserResponse(user.getUserId(), user.getName(), user.getEmail());
     }
 
-
-    @GetMapping("/{id}/preferences")
-    public ResponseEntity<String> getUserPreferences(@PathVariable Long id) {
-        String preferences = userService.getUserPreferences(id);
-        if (preferences != null) {
-            return ResponseEntity.ok(preferences);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
 
 
 }

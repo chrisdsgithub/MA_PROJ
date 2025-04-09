@@ -30,6 +30,10 @@ public class BookingService {
     @Autowired
     private ActivityClient activityClient;
 
+    public List<Booking> getAllBookings() {
+        return bookingRepository.findAll();
+    }
+
     public Booking createBooking(BookingRequest request) throws Exception {
         // Fetch user details using email
         System.out.println("Fetching user by email: " + request.getEmail());
